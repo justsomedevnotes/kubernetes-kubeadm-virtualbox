@@ -1,21 +1,20 @@
 # Introduction
-This post describes my experience standing up a Kubernetes cluster using kubeadm, vagrant, and virtualbox.  I use Ubuntu for my target OS.  Once you stand up the master and join a worker node the process pretty much repeats itself to add as many nodes as desired.
-## Create Nodes
-All the nodes will be created from the ubuntu/xenial vagrant box.  There are a few preqrequisits that need to also be added before adding the Kubernetes components.
+This post describes my experience standing up a Kubernetes cluster using kubeadm, vagrant, and virtualbox.  I use Ubuntu for my target OS.  Once you stand up the master and join a worker node the process pretty much repeats itself to add as many nodes as desired.  All the nodes will be created from the ubuntu/xenial vagrant box.  There are a few preqrequisits that will be added before adding the Kubernetes components.
 
-### Master Node
+## Master Node
 For this example I only create a single master node.  In a real world production example you would want multinode master for HA.  Follow the steps below to instantiate the vagrant box.
-1. Create a directory and switch to that directory  
+### Configure the Vagrant Box
+Create a directory and switch to that directory  
 ```console
 mkdir node01 && cd node01
 ```
 
-2. Initialize the Ubuntu Vagrantfile  
+Initialize the Vagrantfile  
+Use the Ubuntu/xenial64 box for the VM
 ```console
 vagrant init ubuntu/xenial64
 ```
 
-3. Set hostname and IP
 Setup the hostname and a static IP  for the node.  Open the Vagrantfile with your favorite text ediror of choice and make the below modifications.
 ```console
 config.vm.box = "ubuntu/xenial64"
@@ -42,12 +41,16 @@ Change to root
 sudo su
 ```
 
-Change the DNS resolution for the hostname to the private network IP
+In the /etc/hosts file, change the DNS resolution for the hostname to the private network IP
 ```console
+vim /etc/hosts
+```
+```console
+127.0.0.1 localhost
 192.168.33.10 kube-master
 ```
 
-4. Add Pre-requisits
+### Add Pre-requisits
 Update the packages and add a few support applications (ie... Docker).  Typically, once I establish the required pieces I will add them to the provision section of the Vagrantfile so this step is automated.  , This is a learning experience so good idea to do them each for now.
 ```console
 apt-get update
@@ -79,7 +82,7 @@ Verify docker is installed.
 docker ps
 ```
 
-Add the Kubernetes package
+### Add the Kubernetes package
 ```console
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 ```
@@ -94,7 +97,8 @@ Update the package manager and install kubadm
 apt-get update && apt-get install -y kubeadm
 ```
 
-Now initialize the Kubernetes components.
+### Initialize Kubernetes
+Now it is time to actually initialize Kubernetes on the node.
 ```console
 kubeadm init
 ```
@@ -123,11 +127,14 @@ The first item configures your conf file for the local kubectl to access the clu
 ```console
 mkdir -p $HOME/.kube && sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
-The second item is the pod network you want to use.  There are several you can choose from; Calico, Flannel, Weave, etc.  For this example we can use Calico.
+
+### Applying a Pod Network
+The second item in the output above is the pod network you want to use.  There are several you can choose from; Calico, Flannel, Weave, etc.  For this example we will use Calico.
 ```console
 kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml
 ```
 
+### Untainting the Master Node
 If you want to stop here and just use a single node cluster to play around with you can.  All you need to do is untaint the node with the command below.  This will allow you to deploy applications on the master node.  Generally master nodes are tainted so you can't install application workloads.
 ```console
 kubectl taint nodes --all node-role.kubernetes.io/master-
