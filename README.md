@@ -1,5 +1,5 @@
 # Introduction
-This post describes my experience standing up a Kubernetes cluster using kubeadm, vagrant, and virtualbox.  I use Ubuntu for my target OS.  Once you stand up the master and join a worker node the process pretty much repeats itself to add as many nodes as desired.  All the nodes will be created from the ubuntu/xenial vagrant box.  If you just want a single node cluster to play around with, the last section describes untainting the master.
+This post describes a simple process I use to stand up a Kubernetes cluster using kubeadm, vagrant, and virtualbox.  I use Ubuntu for my target OS.  Once you stand up the master and join a worker node the process pretty much repeats itself to add as many nodes as desired.  All the nodes will be created from the ubuntu/xenial vagrant box.  If you just want a single node cluster to play around with, the last section describes untainting the master.
 
 ## Master Node
 For this example I only create a single master node.  In a real world production example you would want multinode master for HA.  Follow the steps below to instantiate the vagrant box.
@@ -51,7 +51,7 @@ vim /etc/hosts
 ```
 
 ### Add Pre-requisits
-Update the packages and add a few support applications (ie... Docker).  Typically, once I establish the required pieces I will add them to the provision section of the Vagrantfile so this step is automated.  , This is a learning experience so good idea to do them each for now.
+Update the packages and add a few support applications (ie... Docker).  Typically, once I establish the required pieces I will add them to the provision section of the Vagrantfile so this step is automated.  This is a learning experience so good idea to do them each for now.
 ```console
 apt-get update
 ```
@@ -129,7 +129,7 @@ mkdir -p $HOME/.kube && sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 ```
 
 ### Applying a Pod Network
-The second item in the output above is the pod network you want to use.  There are several you can choose from; Calico, Flannel, Weave, etc.  For this example we will use Flannel.
+The second item in the output above is the pod network you want to use.  There are several you can choose from: Calico, Flannel, Weave, etc.  For this example we will use Flannel.
 ```console
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml
 ```
